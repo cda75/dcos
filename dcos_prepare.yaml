@@ -1,0 +1,46 @@
+---
+- hosts: bootstrap
+
+  tasks:
+    - name: Change current dir to genconf
+      command: mkdir -p ~/genconf
+
+    - name: Create configuration file
+      blockinfile:
+        dest: ~/genconf/config.yaml
+        create: yes
+        state: present
+        block: |
+          ---
+          bootstrap_url: http://{{ansible_default_ipv4.address}}:8181
+          cluster_name: 'amt'
+          exhibitor_storage_backend: static
+          ip_detect_filename: ~/genconf/ip-detect
+          master_list:
+            - <master-private-ip-1>
+            - <master-private-ip-2>
+            - <master-private-ip-3>
+          resolvers:
+            - 8.8.4.4
+            - 8.8.8.8
+        
+    - name: Create ip-detect script
+      lineinfile: 
+        dest: ~/genconf/ip-detect
+        create: yes
+        state: present
+        line: curl http://169.254.169.254/latest/meta-data/local-ipv4
+
+    - name: Downloading DC/OS installer
+      command: curl -O https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh
+    
+    - name: Generate DC/OS build file
+      shell: dcos_generate_config.sh
+      args:
+        executable: /bin/bash
+
+    - name: Run Docker Containet
+      command: docker run -d -p 8181:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx
+      
+
+

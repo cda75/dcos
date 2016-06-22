@@ -1,0 +1,14 @@
+# BEGIN ANSIBLE MANAGED BLOCK
+---
+bootstrap_url: http://192.168.10.22:8181
+cluster_name: 'amt'
+exhibitor_storage_backend: static
+ip_detect_filename: /genconf/ip-detect
+master_list:
+  - <master-private-ip-1>
+  - <master-private-ip-2>
+  - <master-private-ip-3>
+resolvers:
+  - 8.8.4.4
+  - 8.8.8.8
+# END ANSIBLE MANAGED BLOCK

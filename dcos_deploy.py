@@ -23,22 +23,24 @@ def get_floating_ip():
     if float_ip_pool:
         for fip in float_ip_pool:
             if fip.instance_id == None:
+                print "Attaching floating IP ....."
                 return fip.ip
-        print 'Allocating new ip to Project'
+        print 'Allocating new Floating ip to Project'
         try:
             fip = nova.floating_ips.create()
             print fip.ip
             return fip.ip
         except novaclient.exceptions.Forbidden:
-            print " No floating IP available for the Project"
+            print " No more Floating IP available for the Project"
 
     else:
+        print 'Allocating new Floating ip to Project'
         try:
             fip = nova.floating_ips.create()
             print fip.ip
             return fip.ip
         except novaclient.exceptions.Forbidden:
-            print " No floating IP available for the Project"
+            print " No more Floating IP available for the Project"
 
 
 # Read environment vars from config file
@@ -73,6 +75,7 @@ nova.servers.create(name='DC-OS_Agent', image=image_id, flavor=a_flavor_id, key_
 # wait for server create to be complete
 for server in nova.servers.list():
     while server.status == 'BUILD':
+        print "Building VMs ........"
         time.sleep(5)
         server = nova.servers.get(server.id)  # refresh server
     if server.status == 'ACTIVE':

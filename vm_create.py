@@ -14,7 +14,7 @@ a_nodes = args.agent
 node_distr = args.distr
 
 
-def get_floating_ip():
+def attach_float_ip():
     float_ip_pool = nova.floating_ips.list()
     if float_ip_pool:
         for fip in float_ip_pool:
@@ -46,6 +46,12 @@ def get_fixed_ip(vm):
             if ip['OS-EXT-IPS:type'] == 'fixed':
                 return ip['addr']
 
+def get_float_ip(vm):
+    for net in vm.addresses:
+        addr =  vm.addresses[net]
+        for ip in addr:
+            if ip['OS-EXT-IPS:type'] == 'floating':
+                return ip['addr']
 
 # Read environment vars from config file
 '''
@@ -84,17 +90,17 @@ for server in nova.servers.list():
         time.sleep(5)
         server = nova.servers.get(server.id)  # refresh server
     if server.status == 'ACTIVE':
-        server.add_floating_ip(get_floating_ip())
+        server.add_floating_ip(attach_float_ip())
 
-bootstrap_host = get_fixed_ip(nova.servers.find(name="Bootstrap"))
+bootstrap_host = get_float_ip(nova.servers.find(name="Bootstrap"))
 master_host = []
 agent_host = []
 
 for server in nova.servers.list():
     if 'Master' in server.name:
-        master_host.append(get_fixed_ip(server))
+        master_host.append(server)
     if 'Agent' in server.name:
-        agent_host.append(get_fixed_ip(server))
+        agent_host.append(get_float_ip(server))
 
 #Update Ansible hosts file
 with open("/etc/ansible/hosts", "a") as f:
@@ -106,7 +112,7 @@ with open("/etc/ansible/hosts", "a") as f:
         f.write("%s\n" %host)
     f.write('[dcos_master]\n')
     for host in master_host:
-        f.write("%s\n" %host)
+        f.write("%s master_ip=%s\n" %(get_float_ip(host),get_fixed_ip(host)))
     f.write('#END DCOS\n')
 
 

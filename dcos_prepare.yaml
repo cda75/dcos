@@ -1,8 +1,8 @@
 ---
-- hosts: bootstrap
+- hosts: dcos_bootstrap
 
   tasks:
-    - name: Change current dir to genconf
+    - name: Create genconf directory
       command: mkdir -p ~/genconf
 
     - name: Create configuration file
@@ -16,20 +16,28 @@
           cluster_name: 'amt'
           exhibitor_storage_backend: static
           ip_detect_filename: ~/genconf/ip-detect
-          master_list:
-            - <master-private-ip-1>
-            - <master-private-ip-2>
-            - <master-private-ip-3>
           resolvers:
-            - 8.8.4.4
-            - 8.8.8.8
-        
+          - 8.8.4.4
+          - 8.8.8.8
+          master_list:
+
+    - name: Add master ip to file
+      lineinfile:
+        dest: ~/genconf/config.yaml
+        state: present
+        line: "{{item}}"
+        with_items:
+          - groups['dcos_master'].master_ip
+          
     - name: Create ip-detect script
       lineinfile: 
         dest: ~/genconf/ip-detect
         create: yes
         state: present
         line: curl http://169.254.169.254/latest/meta-data/local-ipv4
+
+
+
 
     - name: Downloading DC/OS installer
       command: curl -O https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh

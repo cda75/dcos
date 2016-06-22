@@ -11,8 +11,16 @@ def get_fixed_ip(vm):
             if ip['OS-EXT-IPS:type'] == 'fixed':
                 return ip['addr']
 
+def get_float_ip(vm):
+    for net in vm.addresses:
+        addr =  vm.addresses[net]
+        for ip in addr:
+            print ip
+            if ip['OS-EXT-IPS:type'] == 'floating':
+                return ip['addr']
 
-bootstrap_host = get_fixed_ip(nova.servers.find(name="Bootstrap"))
+
+bootstrap_host = get_float_ip(nova.servers.find(name="Bootstrap"))
 master_host = []
 agent_host = []
 
@@ -24,21 +32,6 @@ for server in nova.servers.list():
 
 
 print bootstrap_host
-print master_host
-print agent_host
-
-with open("/etc/ansible/hosts", "a") as f:
-    f.write('#BEGIN DCOS\n')
-    f.write('[dcos_bootstrap]\n')
-    f.write("%s\n" %bootstrap_host)
-    f.write('[dcos_agent]\n')
-    for host in agent_host:
-        f.write("%s\n" %host)
-    f.write('[dcos_master]\n')
-    for host in master_host:
-        f.write("%s\n" %host)
-    f.write('#END DCOS\n')
-
 
 
 

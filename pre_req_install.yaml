@@ -13,8 +13,6 @@
     - name: Install Python-Openstack client
       pip: name=python-openstackclient state=present
 
-    - name: Create INstallation Directory
-      command: mkdir -p genconf
 
 
 

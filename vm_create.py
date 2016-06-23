@@ -3,6 +3,7 @@
 import argparse
 import os_client_config
 import time
+import os
 
 parser = argparse.ArgumentParser(description='Deploying DC/OS Mezosphere cluster')
 parser.add_argument("--master", type=int, default=1)
@@ -73,10 +74,17 @@ for image in nova.images.list():
     if node_distr.lower() in image.name.lower():
         image_id = image.id
 
-if nova.keypairs.list():
-    key_id = nova.keypairs.list()[0].name
-else:
-    key_id = nova.keypairs.create(name='key1').name
+#Create new key pairs ans save private key in file
+for key in nova.keypairs.list():
+    if 'dcos_key' ==  key.id:
+        nova.keypairs.delete(key)
+new_key = nova.keypairs.create(name='dcos_key')
+key_id = new_key.id
+key_file = 'dcos_key.key'
+with open(key_file,'w') as key_f:
+    os.chmod(key_file, 0o600)
+    key_f.write(new_key.private_key)
+
 
 # Creating VMs
 nova.servers.create(name='Master', image=image_id, flavor=m_flavor_id, key_name=key_id, min_count=m_nodes)
@@ -97,6 +105,8 @@ master_host = []
 agent_host = []
 
 for server in nova.servers.list():
+    with open('all_ip','a') as f:
+        f.write("%s\n" %get_float_ip(server))
     if 'Master' in server.name:
         master_host.append(server)
     if 'Agent' in server.name:
@@ -114,6 +124,7 @@ with open("/etc/ansible/hosts", "a") as f:
     for host in master_host:
         f.write("%s master_ip=%s\n" %(get_float_ip(host),get_fixed_ip(host)))
     f.write('#END DCOS\n')
+
 
 
 

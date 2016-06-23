@@ -1,0 +1,56 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Update system
+      yum: name=* state=latest
+ 
+    - name: Adding overlay FS support
+      shell: echo "overlay" > /etc/modules-load.d/overlay.conf
+
+    - name: Disable SELINUX and firewalld
+      shell: "{{item}}"
+      with_items:
+        - sed -i s/SELINUX=enforcing/SELINUX=permissive/g /etc/selinux/config
+        - groupadd nogroup
+
+    - name: Reboot all nodes
+      shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Waiting for servers to come back
+      local_action: wait_for host={{ inventory_hostname }} state=started delay=20 timeout=200
+ 
+    - name: Install Dockers
+      command: curl -fsSL https://get.docker.com/ | sh
+
+    - name: Configure systemd to run the Docker Daemon with OverlayFS
+      file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+
+    - name: Configure systemd to run the Docker Daemon with OverlayFS
+      blockinfile:
+        dest: /etc/systemd/system/docker.service.d/override.conf
+        create: yes
+        state: present
+        block: |
+          [Service]
+          ExecStart=
+          ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
+
+    - name: Install zip software
+      yum: name="{{item}}" state=present update_cache=yes
+      with_items:
+        - tar
+        - xz
+        - unzip
+        - curl
+        - ipset
+
+    - name: Restart docker-engine
+      service: name=docker enabled=yes state=started
+
+

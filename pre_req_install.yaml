@@ -13,7 +13,18 @@
     - name: Install Python-Openstack client
       pip: name=python-openstackclient state=present
 
-
+    - name: Add vars to file
+      blockinfile:
+        create: yes
+        dest: group_vars/all/key_settings
+        state: present
+        block: |
+          ---
+          ansible_user: centos
+          ansible_ssh_private_key_file: dcos_key.key
+          ansible_become_user: root
+          ansible_become: yes
+ 
 
 
 

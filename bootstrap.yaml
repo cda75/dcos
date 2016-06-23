@@ -12,37 +12,61 @@
         state: present
         block: |
           ---
-          bootstrap_url: http://{{ansible_default_ipv4.address}}:8181
+          bootstrap_url: http://{{ansible_default_ipv4.address}}:8282
           cluster_name: 'amt'
           exhibitor_storage_backend: static
           ip_detect_filename: /home/centos/genconf/ip-detect
+          master_discovery: static
           resolvers:
           - 8.8.4.4
           - 8.8.8.8
           master_list:
-          - {{ hostvars[item].master_ip }}
+
+    - name: Add master ip
+      lineinfile:
+        dest: /home/centos/genconf/config.yaml
+        create: yes
+        state: present
+        line: "- {{ hostvars[item].fixed_ip }}"
       with_items: "{{ groups['dcos_master'] }}"
+
+    - name: Add agents
+      shell: echo -e "agent_list:" >> /home/centos/genconf/config.yaml
+
+    - name: Add agent ip
+      lineinfile:
+        dest: /home/centos/genconf/config.yaml
+        create: yes
+        state: present
+        line: "- {{ hostvars[item].fixed_ip }}"
+      with_items: "{{ groups['dcos_agent'] }}"
+
+    - name: Remove marker line in file
+      lineinfile:
+        dest: /home/centos/genconf/config.yaml
+        state: absent
+        line: regexp ^#END
 
     - name: Create ip-detect script
       lineinfile: 
         dest: /home/centos/genconf/ip-detect
         create: yes
         state: present
-        line: curl http://169.254.169.254/latest/meta-data/local-ipv4
+        line: "curl http://169.254.169.254/latest/meta-data/local-ipv4"
 
     - name: Downloading DC/OS installer
       get_url: 
         url: https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh
         dest: /home/centos
 
-    - name: Pull Docker NGINX
+    - name: Pull Docker NGINX Container
       command: docker pull nginx
 
     - name: Generate DC/OS build file
       shell: bash /home/centos/dcos_generate_config.sh
 
     - name: Run Docker Containet
-      command: docker run -d -p 8181:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx
+      command: docker run -d -p 8282:80 -v $PWD/genconf/serve:/usr/share/nginx/html:ro nginx
       
 
 

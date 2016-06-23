@@ -8,7 +8,7 @@
     - name: Adding overlay FS support
       shell: echo "overlay" > /etc/modules-load.d/overlay.conf
 
-    - name: Disable SELINUX and firewalld
+    - name: Disable SELINUX 
       shell: "{{item}}"
       with_items:
         - sed -i s/SELINUX=enforcing/SELINUX=permissive/g /etc/selinux/config
@@ -19,12 +19,21 @@
       async: 1
       poll: 0
       ignore_errors: true
-
     - name: Waiting for servers to come back
-      local_action: wait_for host={{ inventory_hostname }} state=started delay=20 timeout=200
+      local_action: wait_for host={{ inventory_hostname }} state=started delay=10 timeout=70
  
-    - name: Install Dockers
-      command: curl -fsSL https://get.docker.com/ | sh
+    - name: Install Dockers Repo
+      blockinfile:
+        dest: /etc/yum.repos.d/docker.repo
+        create: yes
+        state: present
+        block: |
+          [dockerrepo]
+          name=Docker Repository
+          baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://yum.dockerproject.org/gpg
 
     - name: Configure systemd to run the Docker Daemon with OverlayFS
       file:
@@ -40,6 +49,9 @@
           [Service]
           ExecStart=
           ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
+
+    - name: Yum install docker-engine
+      yum: name=docker-engine state=latest update_cache=yes
 
     - name: Install zip software
       yum: name="{{item}}" state=present update_cache=yes

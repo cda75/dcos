@@ -1,0 +1,18 @@
+---
+- hosts: dcos_agent
+
+  tasks:
+    - name: Create DC/OS tmp directory
+      file: path=/tmp/dcos/ state=directory
+
+
+    - name: Add agent ip
+      get_url:
+        dest: /tmp/dcos
+        url: http://{{ hostvars[groups['dcos_bootstrap'][0]].fixed_ip }}:8282/dcos_install.sh
+
+    - name: Start installation on slave nodes  
+      command: bash /tmp/dcos/dcos_install.sh slave
+
+
+

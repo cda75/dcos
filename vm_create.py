@@ -100,7 +100,6 @@ for server in nova.servers.list():
     if server.status == 'ACTIVE':
         server.add_floating_ip(attach_float_ip())
 
-bootstrap_host = get_float_ip(nova.servers.find(name="Bootstrap"))
 master_host = []
 agent_host = []
 
@@ -110,20 +109,20 @@ for server in nova.servers.list():
     if 'Master' in server.name:
         master_host.append(server)
     if 'Agent' in server.name:
-        agent_host.append(get_float_ip(server))
+        agent_host.append(server)
 
 #Update Ansible hosts file
 with open("/etc/ansible/hosts", "a") as f:
-    f.write('#BEGIN DCOS\n')
+    f.write('#BEGIN DCOS HOSTS\n')
     f.write('[dcos_bootstrap]\n')
-    f.write("%s\n" %bootstrap_host)
+    f.write("%s fixed_ip=%s\n" %(get_float_ip(bootstrap), get_fixed_ip(bootstrap)))
     f.write('[dcos_agent]\n')
     for host in agent_host:
-        f.write("%s\n" %host)
+        f.write("%s fixed_ip=%s\n" %(get_float_ip(host), get_fixed_ip(host)))
     f.write('[dcos_master]\n')
     for host in master_host:
-        f.write("%s master_ip=%s\n" %(get_float_ip(host),get_fixed_ip(host)))
-    f.write('#END DCOS\n')
+        f.write("%s fixed_ip=%s\n" %(get_float_ip(host), get_fixed_ip(host)))
+    f.write('#END DCOS HOSTS\n')
 
 
 

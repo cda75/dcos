@@ -1,0 +1,11 @@
+---
+- hosts: dcos_bootstrap
+
+  tasks:
+    - name: Remove marker line in file
+      lineinfile: dest=/home/centos/genconf/config.yaml state=absent line="# END ANSIBLE MANAGED BLOCK"
+
+
+      
+
+

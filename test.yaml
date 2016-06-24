@@ -1,10 +1,16 @@
 ---
-- hosts: dcos_bootstrap
+- hosts: localhost
 
   tasks:
-    - name: Remove marker line in file
-      lineinfile: dest=/home/centos/genconf/config.yaml state=absent line="# END ANSIBLE MANAGED BLOCK"
-
+    - name: Create ip-detect script
+      lineinfile: 
+        dest: /home/ansible/ip-detect
+        create: yes
+        state: present
+        line: "{{item}}"
+      with_items: 
+        - "#!/bin/sh"
+        - echo $(ip addr show eth0 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 
       
 

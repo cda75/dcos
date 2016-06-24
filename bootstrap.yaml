@@ -50,7 +50,7 @@
 
     - name: Create ip-detect script
       lineinfile:
-        dest: /home/ansible/ip-detect
+        dest: /home/centos/genconf/ip-detect
         create: yes
         state: present
         line: "{{item}}"

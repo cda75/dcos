@@ -4,7 +4,7 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 ansible-playbook pre_req_install.yaml
 
-python vm_create.py --master=1 --agent=2
+python vm_create.py --master=3 --agent=1
 
 #Clear known_hots file from existing host keys
 while read line; do
@@ -20,3 +20,9 @@ sleep 10
 ansible-playbook docker_install.yaml
 
 ansible-playbook bootstrap.yaml
+
+ansible-playbook master.yaml
+
+ansible-playbook agent.yaml
+
+

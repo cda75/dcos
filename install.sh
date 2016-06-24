@@ -4,7 +4,7 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 ansible-playbook pre_req_install.yaml
 
-python vm_create.py --master=3 --agent=1
+python vm_create.py --master=1 --agent=3
 
 #Clear known_hots file from existing host keys
 while read line; do

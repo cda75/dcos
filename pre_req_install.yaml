@@ -2,16 +2,26 @@
 - hosts: localhost
 
   tasks:
-    - name: Update 
-      apt: name=python-pip state=latest update_cache=yes 
+    - name: Installing Python-dev and Python-pip
+      apt: name= "{{item}}" state=latest update_cache=yes
+      with_items:
+        - python-dev
+        - python-pip
       when: ansible_distribution == "Ubuntu"
 
-    - name: Update
-      yum: name=python-pip update_cache=yes state=latest
+    - name: Installing Python-dev and Python-pip
+      yum: name= "{{item}}" python-pip update_cache=yes state=latest
+      with_items:
+        - python-dev
+        - python-pip
       when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
 
-    - name: Install Python-Openstack client
-      pip: name=python-openstackclient state=present
+    - name: Install Pytz
+      pip: name= "{{item}}" state=forcereinstall
+      with_items: 
+        - pytz
+        - shade
+        - python-openstackclient
 
     - name: Add vars to file
       blockinfile:

@@ -4,7 +4,7 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 ansible-playbook pre_req_install.yaml
 
-python vm_create.py --master=1 --agent=3
+python vm_create.py --master=1 --agent=5
 
 #Clear known_hots file from existing host keys
 while read line; do
@@ -18,11 +18,8 @@ echo "Waiting for nodes start up"
 sleep 10
 
 ansible-playbook docker_install.yaml
-
 ansible-playbook bootstrap.yaml
+ansible-playbook nodes.yaml
 
-ansible-playbook master.yaml
-
-ansible-playbook agent.yaml
 
 

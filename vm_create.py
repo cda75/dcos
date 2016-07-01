@@ -54,20 +54,10 @@ def get_float_ip(vm):
             if ip['OS-EXT-IPS:type'] == 'floating':
                 return ip['addr']
 
-# Read environment vars from config file
-'''
-from  ConfigParser import SafeConfigParser
-parser = SafeConfigParser()
-parser.read('cloud.ini')
-user =  parser.get('amt_cloud','OS_USERNAME')
-url = parser.get('amt_cloud','OS_AUTH_URL')
-passw = parser.get('amt_cloud','OS_PASSWORD')
-tenant = parser.get('amt_cloud','OS_TENANT_NAME')
-'''
 
 nova = os_client_config.make_client('compute', cloud='amt')
 
-m_flavor_id = nova.flavors.find(name='m1.small')
+m_flavor_id = nova.flavors.find(name='m1.medium')
 a_flavor_id = nova.flavors.find(name='m1.large')
 
 for image in nova.images.list():
